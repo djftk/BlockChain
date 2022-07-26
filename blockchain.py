@@ -14,11 +14,12 @@ class Block():
         self.hash = self.calHash()
     def new_transaction(self, sender, recipient, amount):
         # Adds a new transaction to the list of transaction
-        self.current_transaction[hashlib.sha256(hex(len(self.current_transaction)).encode()).hexdigest()[:40]]={'sender' : sender, 'recipient' : recipient, 'amount' : amount}
+        self.current_transaction[hashlib.sha256(hex(len(self.current_transaction)).encode()).hexdigest()[:40]]={'sender' : sender, 'recipient' : recipient, 'amount' : amount, 'previoustransaction':hashlib.sha256(hex(len(self.current_transaction)-1).encode()).hexdigest()[:40]}
     def calHash(self):
         return hashlib.sha256(str(self.id).encode() + str(self.data).encode() + str(self.timestamp).encode() + str(self.previousHash).encode()).hexdigest()[:40]
 
 class BlockChain:
+
     def __init__(self):
         self.chain = []
         self.current_transactions = []
@@ -44,6 +45,16 @@ class BlockChain:
             if(self.chain[i].previousHash != self.chain[i-1].hash):
                 return False
             i += 1
+        return True
+
+    def istransactionValid(self):
+        i=1
+        while(i<len(self.chain[0].data)):
+            print(hashlib.sha256(hex(i-1).encode()).hexdigest()[:40])
+            print(self.chain[i].data[hashlib.sha256(hex(i).encode()).hexdigest()[:40]]["previoustransaction"])
+            if(hashlib.sha256(hex(i-1).encode()).hexdigest()[:40] != self.chain[i].data[hashlib.sha256(hex(i).encode()).hexdigest()[:40]]["previoustransaction"]):
+                return False
+            i+=1
         return True
 
     def pow(self, last_proof):
@@ -75,4 +86,6 @@ print(my_dict['hash'])
 last_hash = my_dict['hash']
 proof = newblockchain.pow(last_hash)
 print(proof)
+print("===========================================")
+print(newblockchain.istransactionValid())
 print(f"{end - start:.5f} sec")
